@@ -64,13 +64,13 @@
                         WhatsApp
                     </a>
                     <a href="{{ route('home') }}" 
-                       class="bg-gradient-to-r from-cyan-500 to-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:from-cyan-600 hover:to-blue-700 transition-all duration-300">
+                       class="bg-gradient-to-r from-cyan-500 to-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:from-cyan-600 hover:to-blue-700 transition-all duration-300 flex items-center">
                         Lihat Website
                     </a>
-                    <form method="POST" action="{{ route('logout') }}" class="inline">
+                    <form method="POST" action="{{ route('logout') }}" class="inline flex items-center">
                         @csrf
                         <button type="submit" 
-                                class="bg-red-500 text-white px-4 py-2 rounded-lg font-medium hover:bg-red-600 transition-all duration-300">
+                                class="bg-red-500 text-white px-4 py-2 rounded-lg font-medium hover:bg-red-600 transition-all duration-300 flex items-center">
                             Logout
                         </button>
                     </form>
