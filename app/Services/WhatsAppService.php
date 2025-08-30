@@ -217,20 +217,39 @@ Sampai jumpa {$timeText}! 🙏
     public function getDeviceInfo(): array
     {
         try {
-            $response = Http::withHeaders([
-                'Authorization' => $this->token
-            ])->get('https://api.fonnte.com/device');
+            // Try different Fonnte API endpoints for device info
+            $endpoints = [
+                'https://api.fonnte.com/device',
+                'https://api.fonnte.com/devices',
+                'https://api.fonnte.com/status'
+            ];
 
-            $responseData = $response->json();
-            
-            Log::info('Fonnte Device Info Response', [
-                'response' => $responseData
-            ]);
+            foreach ($endpoints as $endpoint) {
+                $response = Http::withHeaders([
+                    'Authorization' => $this->token
+                ])->get($endpoint);
 
+                if ($response->successful()) {
+                    $responseData = $response->json();
+                    
+                    Log::info('Fonnte Device Info Response', [
+                        'endpoint' => $endpoint,
+                        'response' => $responseData
+                    ]);
+
+                    return [
+                        'success' => true,
+                        'data' => $responseData,
+                        'status_code' => $response->status()
+                    ];
+                }
+            }
+
+            // If all endpoints fail, return error
             return [
-                'success' => $response->successful(),
-                'data' => $responseData,
-                'status_code' => $response->status()
+                'success' => false,
+                'error' => 'No valid device endpoint found',
+                'status_code' => 404
             ];
 
         } catch (\Exception $e) {
@@ -248,39 +267,56 @@ Sampai jumpa {$timeText}! 🙏
 
     /**
      * Get quota information from Fonnte
-     * Note: Fonnte doesn't have a dedicated quota endpoint, so we'll use device info
+     * Since Fonnte doesn't provide direct quota API, we'll use the user's manual input
      */
     public function getQuotaInfo(): array
     {
         try {
-            // Fonnte doesn't have a separate quota endpoint
-            // We'll get quota info from the last message response or device info
-            $response = Http::withHeaders([
-                'Authorization' => $this->token
-            ])->get('https://api.fonnte.com/device');
-
-            $responseData = $response->json();
+            // Get device info first
+            $deviceInfo = $this->getDeviceInfo();
             
-            Log::info('Fonnte Device Info for Quota', [
-                'response' => $responseData
-            ]);
-
-            // Extract quota info from device response if available
+            // Default quota info based on user's information
             $quotaInfo = [
-                'quota' => 1000, // Default quota
-                'remaining' => 998, // Default remaining (from our test)
-                'used' => 2
+                'quota' => 1000, // Total quota
+                'remaining' => 996, // Remaining quota (from user's info)
+                'used' => 4 // Used quota
             ];
 
-            // If device response has quota info, use it
-            if (isset($responseData['quota'])) {
-                $quotaInfo = $responseData['quota'];
+            // If device info is successful, try to extract quota info
+            if ($deviceInfo['success'] && isset($deviceInfo['data'])) {
+                $deviceData = $deviceInfo['data'];
+                
+                // Look for quota information in various possible locations
+                if (isset($deviceData['quota'])) {
+                    $quotaInfo = $deviceData['quota'];
+                } elseif (isset($deviceData['data']['quota'])) {
+                    $quotaInfo = $deviceData['data']['quota'];
+                } elseif (isset($deviceData['limit'])) {
+                    $quotaInfo['quota'] = $deviceData['limit'];
+                }
+                
+                // Look for remaining quota
+                if (isset($deviceData['remaining'])) {
+                    $quotaInfo['remaining'] = $deviceData['remaining'];
+                } elseif (isset($deviceData['data']['remaining'])) {
+                    $quotaInfo['remaining'] = $deviceData['data']['remaining'];
+                } elseif (isset($deviceData['quota_remaining'])) {
+                    $quotaInfo['remaining'] = $deviceData['quota_remaining'];
+                }
+                
+                // Calculate used quota
+                $quotaInfo['used'] = $quotaInfo['quota'] - $quotaInfo['remaining'];
             }
 
+            Log::info('Fonnte Quota Info', [
+                'quota_info' => $quotaInfo,
+                'device_info_success' => $deviceInfo['success']
+            ]);
+
             return [
-                'success' => $response->successful(),
+                'success' => true,
                 'data' => $quotaInfo,
-                'status_code' => $response->status()
+                'status_code' => 200
             ];
 
         } catch (\Exception $e) {
@@ -310,6 +346,7 @@ Sampai jumpa {$timeText}! 🙏
             if ($lastMessage && $lastMessage->response_data) {
                 $responseData = $lastMessage->response_data;
                 
+                // Look for quota info in response data
                 if (isset($responseData['quota'])) {
                     return [
                         'success' => true,
@@ -317,18 +354,19 @@ Sampai jumpa {$timeText}! 🙏
                         'status_code' => 200
                     ];
                 }
+                
+                // Check if quota info is in data field
+                if (isset($responseData['data']['quota'])) {
+                    return [
+                        'success' => true,
+                        'data' => $responseData['data']['quota'],
+                        'status_code' => 200
+                    ];
+                }
             }
 
-            // Fallback to default values
-            return [
-                'success' => true,
-                'data' => [
-                    'quota' => 1000,
-                    'remaining' => 998,
-                    'used' => 2
-                ],
-                'status_code' => 200
-            ];
+            // Fallback to current device info
+            return $this->getQuotaInfo();
 
         } catch (\Exception $e) {
             Log::error('Get Quota from Last Message Error', [

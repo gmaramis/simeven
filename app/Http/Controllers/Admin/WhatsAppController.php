@@ -234,7 +234,7 @@ class WhatsAppController extends Controller
     {
         try {
             $deviceInfo = $this->whatsappService->getDeviceInfo();
-            $quotaInfo = $this->whatsappService->getQuotaFromLastMessage();
+            $quotaInfo = $this->whatsappService->getQuotaInfo(); // Use getQuotaInfo instead
 
             return response()->json([
                 'success' => true,
