@@ -175,7 +175,7 @@
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <div class="text-sm text-gray-900">{{ $participant->phone }}</div>
-                                    <div class="text-sm text-gray-500">{{ $participant->email ?? 'Tidak diisi' }}</div>
+                                    <div class="text-sm text-gray-500">WhatsApp</div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                     {{ $participant->created_at->format('d M Y, H:i') }}
@@ -183,7 +183,7 @@
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <div class="flex items-center space-x-2">
                                         <a href="{{ route('admin.registrations.edit', $participant->id) }}" 
-                                           class="text-cyan-600 hover:text-cyan-700 transition-colors duration-200" 
+                                           class="text-cyan-600 hover:text-cyan-700 transition-colors duration-200 flex items-center justify-center w-8 h-8 rounded-lg hover:bg-cyan-50" 
                                            title="Edit Pendaftaran">
                                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
@@ -193,7 +193,7 @@
                                               onsubmit="return confirm('⚠️ PERHATIAN!\n\nAnda yakin ingin menghapus pendaftaran {{ $participant->name }}?\n\nTindakan ini tidak dapat dibatalkan dan akan mengembalikan seat ke event {{ $event->title }}.')">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" class="text-red-600 hover:text-red-700 transition-colors duration-200" 
+                                            <button type="submit" class="text-red-600 hover:text-red-700 transition-colors duration-200 flex items-center justify-center w-8 h-8 rounded-lg hover:bg-red-50" 
                                                     title="Hapus Pendaftaran">
                                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>

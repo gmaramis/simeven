@@ -44,33 +44,33 @@
                 
                 <div class="flex items-center space-x-4">
                     <a href="{{ route('admin.dashboard') }}" 
-                       class="text-gray-700 hover:text-cyan-600 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-300">
+                       class="text-gray-700 hover:text-cyan-600 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-300 flex items-center">
                         Dashboard
                     </a>
                     <a href="{{ route('admin.events.index') }}" 
-                       class="text-gray-700 hover:text-cyan-600 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-300">
+                       class="text-gray-700 hover:text-cyan-600 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-300 flex items-center">
                         Event
                     </a>
                     <a href="{{ route('admin.registrations.index') }}" 
-                       class="text-gray-700 hover:text-cyan-600 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-300">
+                       class="text-gray-700 hover:text-cyan-600 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-300 flex items-center">
                         Pendaftaran
                     </a>
                     <a href="{{ route('admin.checkin.index') }}" 
-                       class="text-gray-700 hover:text-cyan-600 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-300">
+                       class="text-gray-700 hover:text-cyan-600 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-300 flex items-center">
                         Check-in
                     </a>
                     <a href="{{ route('admin.whatsapp.index') }}" 
-                       class="text-gray-700 hover:text-cyan-600 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-300">
+                       class="text-gray-700 hover:text-cyan-600 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-300 flex items-center">
                         WhatsApp
                     </a>
                     <a href="{{ route('home') }}" 
-                       class="bg-gradient-to-r from-cyan-500 to-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:from-cyan-600 hover:to-blue-700 transition-all duration-300 flex items-center">
+                       class="bg-gradient-to-r from-cyan-500 to-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:from-cyan-600 hover:to-blue-700 transition-all duration-300 flex items-center justify-center h-10">
                         Lihat Website
                     </a>
-                    <form method="POST" action="{{ route('logout') }}" class="inline flex items-center">
+                    <form method="POST" action="{{ route('logout') }}" class="inline">
                         @csrf
                         <button type="submit" 
-                                class="bg-red-500 text-white px-4 py-2 rounded-lg font-medium hover:bg-red-600 transition-all duration-300 flex items-center">
+                                class="bg-red-500 text-white px-4 py-2 rounded-lg font-medium hover:bg-red-600 transition-all duration-300 flex items-center justify-center h-10">
                             Logout
                         </button>
                     </form>
