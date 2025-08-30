@@ -45,12 +45,12 @@ jobs:
         cp -r bootstrap deployment/
         cp -r config deployment/
         cp -r database deployment/
-        cp -r lang deployment/
         cp -r resources deployment/
         cp -r routes deployment/
         cp -r storage deployment/
         cp -r vendor deployment/
         cp -r public deployment/
+        cp -r tests deployment/
         
         # Copy configuration files
         cp artisan deployment/
@@ -61,6 +61,9 @@ jobs:
         cp tailwind.config.js deployment/
         cp vite.config.js deployment/
         cp postcss.config.js deployment/
+        cp phpunit.xml deployment/
+        cp .editorconfig deployment/
+        cp .gitattributes deployment/
         
         # Copy production environment
         cp env.production.example deployment/.env
