@@ -1,4 +1,4 @@
-name: Deploy to Hostinger
+name: Deploy to Hostinger (Simple)
 
 on:
   push:
@@ -16,7 +16,7 @@ jobs:
     - name: Setup PHP
       uses: shivammathur/setup-php@v2
       with:
-        php-version: '8.2'
+        php-version: '8.1'
         extensions: mbstring, xml, ctype, iconv, intl, pdo_mysql, fileinfo, curl, zip, gd
         coverage: none
         
@@ -40,7 +40,7 @@ jobs:
         # Create deployment directory
         mkdir -p deployment
         
-        # Copy Laravel files
+        # Copy essential Laravel files
         cp -r app deployment/
         cp -r bootstrap deployment/
         cp -r config deployment/
@@ -62,61 +62,19 @@ jobs:
         cp vite.config.js deployment/
         cp postcss.config.js deployment/
         
+        # Copy production environment
+        cp env.production.example deployment/.env
+        
         # Create .htaccess for subdomain
         echo 'RewriteEngine On
         RewriteCond %{REQUEST_FILENAME} !-d
         RewriteCond %{REQUEST_FILENAME} !-f
         RewriteRule ^ index.php [L]' > deployment/public/.htaccess
         
-        # Create deployment script
-        echo '#!/bin/bash
-        cd /home/*/public_html/event.kairosmanado.id
-        
-        # Backup current version
-        if [ -d "backup" ]; then
-            rm -rf backup
-        fi
-        if [ -d "current" ]; then
-            mv current backup
-        fi
-        
-        # Extract new version
-        tar -xzf deployment.tar.gz
-        mv deployment current
-        
         # Set permissions
-        chmod -R 755 current
-        chmod -R 775 current/storage
-        chmod -R 775 current/bootstrap/cache
-        
-        # Create symlinks
-        ln -sf current/public public_html
-        
-        # Copy production environment file
-        if [ -f "current/env.production.example" ]; then
-            cp current/env.production.example current/.env
-        fi
-        
-        # Run Laravel commands
-        cd current
-        php artisan key:generate --force
-        php artisan storage:link
-        php artisan config:cache
-        php artisan route:cache
-        php artisan view:cache
-        
-        echo "Deployment completed successfully!"' > deployment/deploy.sh
-        
-        chmod +x deployment/deploy.sh
-        
-        # Create tar.gz package
-        tar -czf deployment.tar.gz deployment/
-        
-    - name: Upload deployment package
-      uses: actions/upload-artifact@v4
-      with:
-        name: deployment-package
-        path: deployment.tar.gz
+        chmod -R 755 deployment/
+        chmod -R 775 deployment/storage/
+        chmod -R 775 deployment/bootstrap/cache/
         
     - name: Deploy to Hostinger via FTP
       uses: SamKirkland/FTP-Deploy-Action@v4.3.4
@@ -130,28 +88,19 @@ jobs:
           **/.git*
           **/.git*/**
           **/node_modules/**
-          **/.env
           **/storage/logs/*
           **/storage/framework/cache/*
           **/storage/framework/sessions/*
           **/storage/framework/views/*
-          
-    - name: Execute deployment script
-      uses: appleboy/ssh-action@v1.0.3
-      with:
-        host: ${{ secrets.SSH_HOST }}
-        username: ${{ secrets.SSH_USERNAME }}
-        key: ${{ secrets.SSH_PRIVATE_KEY }}
-        script: |
-          cd /home/*/public_html/event.kairosmanado.id
-          chmod +x deploy.sh
-          ./deploy.sh
           
     - name: Notify deployment status
       if: always()
       run: |
         if [ ${{ job.status }} == 'success' ]; then
           echo "✅ Deployment to event.kairosmanado.id completed successfully!"
+          echo "🌐 Website: https://event.kairosmanado.id"
+          echo "🔧 Admin: https://event.kairosmanado.id/admin"
         else
           echo "❌ Deployment failed!"
+          echo "📋 Check logs for details"
         fi
