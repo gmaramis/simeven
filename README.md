@@ -1,152 +1,123 @@
-# 🎉 Event Management System - GSJA Kairos Manado
+# 🎯 Event Management System - GSJA Kairos Manado
 
-Sistem manajemen event untuk Gereja GSJA Kairos Manado yang memungkinkan pendaftaran event, check-in peserta, dan integrasi WhatsApp untuk notifikasi otomatis.
+**Last Updated:** 2025-08-30 11:30 WIB
 
-## ✨ Fitur Utama
+A comprehensive event management system designed specifically for GSJA Kairos Manado church to manage events, registrations, and participant communications.
 
-### 🎯 **Event Management**
-- ✅ Buat, edit, dan kelola event
-- ✅ Status event (Draft, Published, Ongoing, Completed)
-- ✅ Manajemen seat/kursi tersedia
-- ✅ Upload gambar event
+## ✨ Features
 
-### 👥 **Registration System**
-- ✅ Pendaftaran publik via website
-- ✅ Form pendaftaran dengan validasi WhatsApp
-- ✅ Auto-confirmation untuk pendaftaran publik
-- ✅ Admin dapat mengelola pendaftaran
+### 🎪 Event Management
+- **Create & Manage Events** - Full CRUD operations for events
+- **Event Publishing** - Control event visibility (draft/published)
+- **Image Upload** - Support for event banners and images
+- **Seat Management** - Track available seats and registrations
+- **Event Details** - Rich event information (date, time, location, description)
 
-### 📱 **WhatsApp Integration**
-- ✅ Integrasi dengan Fonnte API
-- ✅ Auto-send konfirmasi pendaftaran
-- ✅ Reminder otomatis (H-1, H-0)
-- ✅ Dashboard monitoring WhatsApp
-- ✅ Tracking quota dan status device
+### 📝 Registration System
+- **Public Registration** - User-friendly registration forms
+- **Admin Registration** - Manual registration by administrators
+- **Duplicate Prevention** - Prevent duplicate registrations
+- **Status Management** - Track registration status (pending/confirmed/cancelled)
+- **Bulk Operations** - Select and delete multiple registrations
+- **Individual Deletion** - Remove specific registrations
 
-### 🔍 **Check-in System**
-- ✅ Interface check-in mobile-friendly
-- ✅ Search peserta berdasarkan nomor WhatsApp
-- ✅ Real-time stats dan dashboard
-- ✅ Multiple check-in points
+### 📱 WhatsApp Integration
+- **Fonnte API Integration** - Automated WhatsApp messaging
+- **Confirmation Messages** - Auto-send registration confirmations
+- **Reminder System** - H-1 and H-0 event reminders
+- **Message Tracking** - Monitor sent/failed messages
+- **Quota Management** - Track WhatsApp API quota
+- **Retry Mechanism** - Retry failed messages
 
-### 🗑️ **Bulk Operations**
-- ✅ Bulk delete peserta
-- ✅ Select all/none functionality
-- ✅ Confirmation dialog
-- ✅ Auto seat management
+### ✅ Check-in System
+- **Real-time Check-in** - Mobile-friendly check-in interface
+- **Search Participants** - Find participants by phone number
+- **Check-in Tracking** - Record check-in time and admin
+- **Event Statistics** - Real-time registration and check-in stats
+- **Multiple Check-in Points** - Support for multiple stations
+
+### 🎨 Modern UI/UX
+- **Responsive Design** - Works on desktop, tablet, and mobile
+- **Tailwind CSS** - Modern, clean design system
+- **GSJA Kairos Branding** - Custom colors and branding
+- **Smooth Animations** - Enhanced user experience
+- **Dark/Light Mode Ready** - Flexible theming
 
 ## 🛠️ Tech Stack
 
-- **Backend:** Laravel 12.x
+- **Backend:** Laravel 12.x (PHP 8.2+)
 - **Frontend:** Tailwind CSS, Alpine.js
-- **Database:** MySQL
-- **WhatsApp API:** Fonnte
-- **Authentication:** Laravel Breeze
-
-## 📋 Requirements
-
-- PHP 8.2+
-- Composer
-- MySQL 8.0+
-- Node.js & NPM
-- Fonnte Account (untuk WhatsApp integration)
+- **Database:** MySQL 8.0+
+- **WhatsApp:** Fonnte API
+- **Deployment:** GitHub Actions + Hostinger
+- **Version Control:** Git
 
 ## 🚀 Installation
 
-### 1. Clone Repository
-```bash
-git clone https://github.com/yourusername/event-kairos-manado.git
-cd event-kairos-manado
-```
+### Requirements
+- PHP 8.2 or higher
+- Composer
+- Node.js 18+ and NPM
+- MySQL 8.0 or higher
+- Web server (Apache/Nginx)
 
-### 2. Install Dependencies
-```bash
-composer install
-npm install
-```
+### Step-by-Step Installation
 
-### 3. Environment Setup
-```bash
-cp .env.example .env
-php artisan key:generate
-```
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/gmaramis/simeven.git
+   cd simeven
+   ```
 
-### 4. Database Configuration
-Edit `.env` file:
-```env
-DB_CONNECTION=mysql
-DB_HOST=127.0.0.1
-DB_PORT=3306
-DB_DATABASE=event_kairos_manado
-DB_USERNAME=your_username
-DB_PASSWORD=your_password
-```
+2. **Install PHP dependencies**
+   ```bash
+   composer install
+   ```
 
-### 5. WhatsApp Configuration (Optional)
-```env
-FONNTE_API_TOKEN=your_fonnte_token
-FONNTE_API_URL=https://api.fonnte.com
-WHATSAPP_ENABLED=true
-```
+3. **Install Node.js dependencies**
+   ```bash
+   npm install
+   ```
 
-### 6. Database Migration & Seeding
-```bash
-php artisan migrate
-php artisan db:seed
-```
+4. **Environment setup**
+   ```bash
+   cp .env.example .env
+   php artisan key:generate
+   ```
 
-### 7. Storage Setup
-```bash
-php artisan storage:link
-```
+5. **Database configuration**
+   ```bash
+   # Update .env file with your database credentials
+   DB_CONNECTION=mysql
+   DB_HOST=127.0.0.1
+   DB_PORT=3306
+   DB_DATABASE=event-kairos
+   DB_USERNAME=root
+   DB_PASSWORD=your_password
+   ```
 
-### 8. Build Assets
-```bash
-npm run build
-```
+6. **Run database migrations and seeders**
+   ```bash
+   php artisan migrate
+   php artisan db:seed
+   ```
 
-### 9. Start Server
-```bash
-php artisan serve
-```
+7. **Build frontend assets**
+   ```bash
+   npm run build
+   ```
 
-## 👤 Default Admin Account
+8. **Create storage link**
+   ```bash
+   php artisan storage:link
+   ```
 
-- **Email:** `gmaramis@kairosmanado.id`
-- **Password:** `password`
+9. **Start the development server**
+   ```bash
+   php artisan serve
+   ```
 
-## 📱 WhatsApp Integration Setup
-
-### 1. Fonnte Account
-1. Daftar di [Fonnte](https://fonnte.com)
-2. Hubungkan device WhatsApp
-3. Dapatkan API token
-
-### 2. Environment Variables
-```env
-FONNTE_API_TOKEN=your_token_here
-FONNTE_API_URL=https://api.fonnte.com
-WHATSAPP_ENABLED=true
-```
-
-### 3. Test Integration
-```bash
-php artisan whatsapp:test 081234567890
-```
-
-## 🎯 Usage
-
-### Admin Panel
-- **Dashboard:** `http://localhost:8000/admin`
-- **Events:** `http://localhost:8000/admin/events`
-- **Registrations:** `http://localhost:8000/admin/registrations`
-- **Check-in:** `http://localhost:8000/admin/checkin`
-- **WhatsApp:** `http://localhost:8000/admin/whatsapp`
-
-### Public Website
-- **Homepage:** `http://localhost:8000`
-- **Events:** `http://localhost:8000/events`
-- **Contact:** `http://localhost:8000/contact`
+The application will be available at `http://127.0.0.1:8000`
 
 ## 🌐 Production Deployment
 
@@ -204,83 +175,72 @@ php artisan whatsapp:send-reminders --type=h0
 
 ### Maintenance Commands
 ```bash
-# Clear caches
-php artisan cache:clear
-php artisan config:clear
-php artisan route:clear
-php artisan view:clear
+# Clear all caches
+php artisan optimize:clear
 
-# Optimize for production
-php artisan optimize
+# Generate application key
+php artisan key:generate
+
+# Create storage link
+php artisan storage:link
 ```
 
 ## 📊 Database Structure
 
-### Main Tables
-- `events` - Data event
-- `registrations` - Data pendaftaran
-- `users` - Admin users
-- `whatsapp_messages` - Log pesan WhatsApp
+### Core Tables
+- **events** - Event information and settings
+- **registrations** - Participant registrations
+- **users** - Admin users
+- **whatsapp_messages** - WhatsApp message history
 
 ### Key Relationships
-- Event → Registrations (One-to-Many)
-- Registration → WhatsApp Messages (One-to-Many)
-- User → Events (One-to-Many)
+- Events have many Registrations
+- Registrations belong to Events
+- Registrations have many WhatsApp Messages
 
 ## 🔒 Security Features
 
-- ✅ CSRF Protection
-- ✅ Input Validation
-- ✅ SQL Injection Prevention
-- ✅ XSS Protection
-- ✅ Authentication & Authorization
-- ✅ Rate Limiting
+- **CSRF Protection** - All forms protected
+- **Input Validation** - Server-side validation
+- **SQL Injection Prevention** - Eloquent ORM
+- **XSS Protection** - Blade templating
+- **File Upload Security** - Validated uploads
+- **Environment Variables** - Sensitive data protection
 
-## 📈 Performance Optimization
+## ⚡ Performance Optimization
 
-- ✅ Database Indexing
-- ✅ Query Optimization
-- ✅ Asset Minification
-- ✅ Caching Strategies
-- ✅ Lazy Loading
+- **Laravel Caching** - Config, route, and view caching
+- **Asset Optimization** - Minified CSS/JS
+- **Database Indexing** - Optimized queries
+- **Image Optimization** - Compressed uploads
+- **CDN Ready** - Static asset delivery
 
-## 🐛 Troubleshooting
+## 🆘 Troubleshooting
 
 ### Common Issues
 
-#### 1. WhatsApp Integration Not Working
-```bash
-# Check Fonnte API status
-php artisan whatsapp:test 081234567890
+#### WhatsApp Integration
+- **Check Fonnte API token** - Verify in .env file
+- **Test device connection** - Ensure WhatsApp is connected
+- **Verify phone numbers** - Use correct format (08xxxxxxxxxx)
 
-# Check environment variables
-php artisan config:cache
-```
+#### Database Issues
+- **Check credentials** - Verify .env configuration
+- **Run migrations** - `php artisan migrate`
+- **Clear cache** - `php artisan config:clear`
 
-#### 2. Database Connection Issues
-```bash
-# Test database connection
-php artisan tinker
-DB::connection()->getPdo();
-```
-
-#### 3. Storage Issues
-```bash
-# Recreate storage link
-php artisan storage:link
-
-# Check permissions
-chmod -R 775 storage
-chmod -R 775 bootstrap/cache
-```
+#### Storage Issues
+- **Create storage link** - `php artisan storage:link`
+- **Check permissions** - Ensure write access
+- **Verify disk space** - Check available storage
 
 ## 🤝 Contributing
 
 1. Fork the repository
-2. Create feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit changes (`git commit -m 'Add AmazingFeature'`)
-4. Push to branch (`git push origin feature/AmazingFeature`)
-5. Open Pull Request
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
 ## 📄 License
 
@@ -288,17 +248,13 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📞 Support
 
-- **Email:** support@kairosmanado.id
-- **WhatsApp:** 085240543123
-- **Website:** https://kairosmanado.id
+For support and questions:
+- **Email:** gmaramis@kairosmanado.id
+- **GitHub Issues:** [Create an issue](https://github.com/gmaramis/simeven/issues)
 
 ## 🙏 Acknowledgments
 
-- GSJA Kairos Manado
-- Laravel Community
-- Fonnte Team
-- Tailwind CSS Team
-
----
-
-**Made with ❤️ for GSJA Kairos Manado**
+- **GSJA Kairos Manado** - For the opportunity to serve
+- **Laravel Community** - For the amazing framework
+- **Tailwind CSS** - For the beautiful design system
+- **Fonnte** - For WhatsApp integration services
