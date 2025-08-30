@@ -1,0 +1,150 @@
+name: Deploy to Hostinger
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.2'
+        extensions: mbstring, xml, ctype, iconv, intl, pdo_mysql, fileinfo, curl, zip, gd
+        coverage: none
+        
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: Install Composer dependencies
+      run: composer install --no-dev --optimize-autoloader
+      
+    - name: Install NPM dependencies
+      run: npm ci
+      
+    - name: Build assets
+      run: npm run build
+      
+    - name: Create deployment package
+      run: |
+        # Create deployment directory
+        mkdir -p deployment
+        
+        # Copy Laravel files
+        cp -r app deployment/
+        cp -r bootstrap deployment/
+        cp -r config deployment/
+        cp -r database deployment/
+        cp -r lang deployment/
+        cp -r resources deployment/
+        cp -r routes deployment/
+        cp -r storage deployment/
+        cp -r vendor deployment/
+        cp -r public deployment/
+        
+        # Copy configuration files
+        cp artisan deployment/
+        cp composer.json deployment/
+        cp composer.lock deployment/
+        cp package.json deployment/
+        cp package-lock.json deployment/
+        cp tailwind.config.js deployment/
+        cp vite.config.js deployment/
+        cp postcss.config.js deployment/
+        
+        # Create .htaccess for subdomain
+        echo 'RewriteEngine On
+        RewriteCond %{REQUEST_FILENAME} !-d
+        RewriteCond %{REQUEST_FILENAME} !-f
+        RewriteRule ^ index.php [L]' > deployment/public/.htaccess
+        
+        # Create deployment script
+        echo '#!/bin/bash
+        cd /home/*/public_html/event.kairosmanado.id
+        
+        # Backup current version
+        if [ -d "backup" ]; then
+            rm -rf backup
+        fi
+        if [ -d "current" ]; then
+            mv current backup
+        fi
+        
+        # Extract new version
+        tar -xzf deployment.tar.gz
+        mv deployment current
+        
+        # Set permissions
+        chmod -R 755 current
+        chmod -R 775 current/storage
+        chmod -R 775 current/bootstrap/cache
+        
+        # Create symlinks
+        ln -sf current/public public_html
+        
+        # Run Laravel commands
+        cd current
+        php artisan config:cache
+        php artisan route:cache
+        php artisan view:cache
+        
+        echo "Deployment completed successfully!"' > deployment/deploy.sh
+        
+        chmod +x deployment/deploy.sh
+        
+        # Create tar.gz package
+        tar -czf deployment.tar.gz deployment/
+        
+    - name: Upload deployment package
+      uses: actions/upload-artifact@v4
+      with:
+        name: deployment-package
+        path: deployment.tar.gz
+        
+    - name: Deploy to Hostinger via FTP
+      uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+      with:
+        server: ${{ secrets.FTP_SERVER }}
+        username: ${{ secrets.FTP_USERNAME }}
+        password: ${{ secrets.FTP_PASSWORD }}
+        server-dir: /public_html/event.kairosmanado.id/
+        local-dir: ./deployment/
+        exclude: |
+          **/.git*
+          **/.git*/**
+          **/node_modules/**
+          **/.env
+          **/storage/logs/*
+          **/storage/framework/cache/*
+          **/storage/framework/sessions/*
+          **/storage/framework/views/*
+          
+    - name: Execute deployment script
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: ${{ secrets.SSH_HOST }}
+        username: ${{ secrets.SSH_USERNAME }}
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        script: |
+          cd /home/*/public_html/event.kairosmanado.id
+          chmod +x deploy.sh
+          ./deploy.sh
+          
+    - name: Notify deployment status
+      if: always()
+      run: |
+        if [ ${{ job.status }} == 'success' ]; then
+          echo "✅ Deployment to event.kairosmanado.id completed successfully!"
+        else
+          echo "❌ Deployment failed!"
+        fi

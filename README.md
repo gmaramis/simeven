@@ -148,6 +148,48 @@ php artisan whatsapp:test 081234567890
 - **Events:** `http://localhost:8000/events`
 - **Contact:** `http://localhost:8000/contact`
 
+## 🌐 Production Deployment
+
+### Automatic Deployment to Hostinger
+This application is configured for automatic deployment to `event.kairosmanado.id` using GitHub Actions.
+
+#### **Prerequisites:**
+- ✅ Hostinger hosting account
+- ✅ Subdomain: `event.kairosmanado.id`
+- ✅ MySQL database
+- ✅ FTP/SSH access
+
+#### **Setup Steps:**
+
+1. **Configure GitHub Secrets**
+   ```
+   Go to: https://github.com/gmaramis/simeven/settings/secrets/actions
+   
+   Add these secrets:
+   - FTP_SERVER: your-ftp-server.hostinger.com
+   - FTP_USERNAME: your-ftp-username
+   - FTP_PASSWORD: your-ftp-password
+   ```
+
+2. **Database Setup**
+   ```bash
+   # Export local database
+   ./scripts/export-database.sh
+   
+   # Import to Hostinger via phpMyAdmin
+   ```
+
+3. **Automatic Deployment**
+   - Every push to `main` branch triggers deployment
+   - Manual deployment available via GitHub Actions
+
+#### **Production URLs:**
+- **Public Website:** https://event.kairosmanado.id
+- **Admin Panel:** https://event.kairosmanado.id/admin
+- **Default Admin:** gmaramis@kairosmanado.id / password
+
+📖 **Detailed deployment guide:** [DEPLOYMENT.md](DEPLOYMENT.md)
+
 ## 🔧 Commands
 
 ### WhatsApp Commands
