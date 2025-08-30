@@ -1,0 +1,119 @@
+name: Deploy to Hostinger (SFTP)
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.1"
+          extensions: mbstring, xml, ctype, iconv, intl, pdo_mysql, fileinfo, curl, zip, gd, openssl
+          coverage: none
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+          cache: "npm"
+
+      - name: Install Composer dependencies
+        run: composer install --no-dev --optimize-autoloader --ignore-platform-reqs
+
+      - name: Install NPM dependencies
+        run: npm ci
+
+      - name: Build assets
+        run: npm run build
+
+      - name: Create deployment package
+        run: |
+          # Create deployment directory
+          mkdir -p deployment
+
+          # Copy essential Laravel files
+          cp -r app deployment/
+          cp -r bootstrap deployment/
+          cp -r config deployment/
+          cp -r database deployment/
+          cp -r resources deployment/
+          cp -r routes deployment/
+          cp -r storage deployment/
+          cp -r vendor deployment/
+          cp -r public deployment/
+          cp -r tests deployment/
+
+          # Copy configuration files
+          cp artisan deployment/
+          cp composer.json deployment/
+          cp composer.lock deployment/
+          cp package.json deployment/
+          cp package-lock.json deployment/
+          cp tailwind.config.js deployment/
+          cp vite.config.js deployment/
+          cp postcss.config.js deployment/
+          cp phpunit.xml deployment/
+          cp .editorconfig deployment/
+          cp .gitattributes deployment/
+
+          # Copy production environment
+          cp env.production.example deployment/.env
+
+          # Create .htaccess for subdomain
+          echo 'RewriteEngine On
+          RewriteCond %{REQUEST_FILENAME} !-d
+          RewriteCond %{REQUEST_FILENAME} !-f
+          RewriteRule ^ index.php [L]' > deployment/public/.htaccess
+
+          # Set permissions
+          chmod -R 755 deployment/
+          chmod -R 775 deployment/storage/
+          chmod -R 775 deployment/bootstrap/cache/
+
+      - name: Deploy to Hostinger via SFTP
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SFTP_HOST }}
+          username: ${{ secrets.SFTP_USERNAME }}
+          key: ${{ secrets.SFTP_PRIVATE_KEY }}
+          source: "./deployment/*"
+          target: "/public_html/event.kairosmanado.id/"
+          strip_components: 1
+
+      - name: Execute post-deployment commands
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SFTP_HOST }}
+          username: ${{ secrets.SFTP_USERNAME }}
+          key: ${{ secrets.SFTP_PRIVATE_KEY }}
+          script: |
+            cd /public_html/event.kairosmanado.id
+            php artisan key:generate --force
+            php artisan storage:link
+            php artisan config:cache
+            php artisan route:cache
+            php artisan view:cache
+            chmod -R 755 .
+            chmod -R 775 storage/
+            chmod -R 775 bootstrap/cache/
+
+      - name: Notify deployment status
+        if: always()
+        run: |
+          if [ ${{ job.status }} == 'success' ]; then
+            echo "✅ Deployment to event.kairosmanado.id completed successfully!"
+            echo "🌐 Website: https://event.kairosmanado.id"
+            echo "🔧 Admin: https://event.kairosmanado.id/admin"
+          else
+            echo "❌ Deployment failed!"
+            echo "📋 Check logs for details"
+          fi
