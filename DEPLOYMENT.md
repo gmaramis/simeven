@@ -38,10 +38,10 @@ SSH_PRIVATE_KEY = your-ssh-private-key
 
 ## 🗄️ Database Setup
 
-### 1. Buat Database di Hostinger
-- Database name: `kairos_event_db`
-- Username: `kairos_event_user`
-- Password: `strong_password_here`
+### 1. Database di Hostinger (Sudah Dibuat)
+- Database name: `u532998_eventkairos`
+- Username: `u532998_eventkairos`
+- Password: `zji}NOlu)TjEa-5A`
 
 ### 2. Import Database Schema
 ```sql
@@ -81,9 +81,9 @@ APP_URL=https://event.kairosmanado.id
 DB_CONNECTION=mysql
 DB_HOST=localhost
 DB_PORT=3306
-DB_DATABASE=kairos_event_db
-DB_USERNAME=kairos_event_user
-DB_PASSWORD=your_database_password
+DB_DATABASE=u532998_eventkairos
+DB_USERNAME=u532998_eventkairos
+DB_PASSWORD=zji}NOlu)TjEa-5A
 
 # WhatsApp Fonnte Configuration
 FONNTE_API_TOKEN=2d3Ys4hQay3mHSmCVkPR

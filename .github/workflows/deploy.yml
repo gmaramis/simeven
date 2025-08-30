@@ -92,8 +92,15 @@ jobs:
         # Create symlinks
         ln -sf current/public public_html
         
+        # Copy production environment file
+        if [ -f "current/env.production.example" ]; then
+            cp current/env.production.example current/.env
+        fi
+        
         # Run Laravel commands
         cd current
+        php artisan key:generate --force
+        php artisan storage:link
         php artisan config:cache
         php artisan route:cache
         php artisan view:cache
