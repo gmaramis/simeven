@@ -10,7 +10,6 @@ class Registration extends Model
     protected $fillable = [
         'event_id',
         'name',
-        'email',
         'phone',
         'church',
         'ministry',
