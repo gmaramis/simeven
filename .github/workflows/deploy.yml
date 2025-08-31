@@ -68,9 +68,10 @@ jobs:
           # Copy production environment
           cp env.production.example deployment/.env
 
-          # Copy test files
+          # Copy test and fix files
           cp test_auth.php deployment/
           cp clear_cache.php deployment/
+          cp fix_images.php deployment/
 
           # Create .htaccess for subdomain
           echo 'RewriteEngine On
@@ -109,6 +110,7 @@ jobs:
             echo "🔧 Admin: https://event.kairosmanado.id/admin"
             echo "🧪 Test Auth: https://event.kairosmanado.id/test_auth.php"
             echo "🧹 Clear Cache: https://event.kairosmanado.id/clear_cache.php"
+            echo "🖼️ Fix Images: https://event.kairosmanado.id/fix_images.php"
           else
             echo "❌ Deployment failed!"
             echo "📋 Check logs for details"
