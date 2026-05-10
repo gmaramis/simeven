@@ -20,6 +20,17 @@
 
             <!-- Content -->
             <div class="p-8">
+                @if(!empty($checkoutUrl))
+                    <div class="mb-8 rounded-2xl border border-amber-200 bg-amber-50 p-6 text-left">
+                        <h3 class="text-lg font-bold text-amber-900 mb-2">Selesaikan pembayaran</h3>
+                        <p class="text-sm text-amber-800 mb-4">Pendaftaran Anda sudah tercatat. Silakan lakukan pembayaran untuk mengaktifkan tiket (nomor kursi tetap dijaga seperti proses sebelumnya).</p>
+                        <a href="{{ $checkoutUrl }}"
+                           class="inline-flex items-center justify-center rounded-xl bg-amber-600 px-6 py-3 text-sm font-bold text-white shadow hover:bg-amber-700">
+                            Bayar sekarang
+                        </a>
+                    </div>
+                @endif
+
                 <!-- Event Info -->
                 <div class="bg-gradient-to-r from-cyan-50 to-blue-50 border border-cyan-200 rounded-2xl p-6 mb-8">
                     <div class="flex items-center mb-4">

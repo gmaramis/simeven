@@ -72,6 +72,14 @@ class WhatsAppController extends Controller
     public function sendConfirmation(Request $request, Registration $registration)
     {
         try {
+            $registration->loadMissing('event');
+            if ($registration->event?->isPaid() && $registration->payment_status !== Registration::PAYMENT_PAID) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Peserta belum menyelesaikan pembayaran',
+                ]);
+            }
+
             // Check if message already exists
             $existingMessage = WhatsAppMessage::where('registration_id', $registration->id)
                 ->where('message_type', 'confirmation')
@@ -126,7 +134,7 @@ class WhatsAppController extends Controller
         
         try {
             $registrations = Registration::where('event_id', $event->id)
-                ->where('is_confirmed', true)
+                ->confirmedForAttendance()
                 ->get();
 
             $sentCount = 0;

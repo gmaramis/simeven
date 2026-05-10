@@ -6,6 +6,8 @@ use App\Http\Controllers\RegistrationController;
 use App\Http\Controllers\PublicController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\CheckinController;
+use App\Http\Controllers\MemberController;
+use App\Http\Controllers\PaymentController;
 use Illuminate\Support\Facades\Route;
 
 // Public Routes
@@ -19,9 +21,18 @@ Route::get('/events/{eventId}/register', [RegistrationController::class, 'regist
 Route::post('/events/{eventId}/register', [RegistrationController::class, 'storePublic'])->name('events.register.store');
 Route::get('/registration/success/{registrationId}', [RegistrationController::class, 'success'])->name('registration.success');
 
-// Auth Routes
+Route::post('/payments/midtrans/notification', [PaymentController::class, 'midtransNotification'])->name('payments.midtrans.notification');
+Route::get('/payments/checkout/{registration}', [PaymentController::class, 'checkout'])
+    ->middleware('signed')
+    ->name('payments.checkout');
+
 Route::get('/dashboard', function () {
-    return redirect()->route('admin.dashboard');
+    $user = auth()->user();
+    if ($user->isStaffOrAdmin()) {
+        return redirect()->route('admin.dashboard');
+    }
+
+    return redirect()->route('member.dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
@@ -30,34 +41,31 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-// Admin Routes
-Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(function () {
-    // Dashboard
+Route::middleware(['auth', 'verified'])->prefix('member')->name('member.')->group(function () {
+    Route::get('/', [MemberController::class, 'dashboard'])->name('dashboard');
+});
+
+Route::middleware(['auth', 'verified', 'staff'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/', [AdminController::class, 'dashboard'])->name('dashboard');
-    
-    // Events Management
+
     Route::resource('events', EventController::class);
     Route::patch('events/{id}/publish', [EventController::class, 'publish'])->name('events.publish');
     Route::patch('events/{id}/unpublish', [EventController::class, 'unpublish'])->name('events.unpublish');
-    
-    // Event Participants
+
     Route::get('events/{eventId}/participants', [AdminController::class, 'eventParticipants'])->name('events.participants');
     Route::get('events/{eventId}/participants/print', [AdminController::class, 'printParticipants'])->name('events.participants.print');
 
-    // Check-in Management
     Route::get('checkin', [CheckinController::class, 'index'])->name('checkin.index');
     Route::get('checkin/{eventId}', [CheckinController::class, 'event'])->name('checkin.event');
     Route::post('checkin/{eventId}/search', [CheckinController::class, 'search'])->name('checkin.search');
     Route::post('checkin/{eventId}/checkin', [CheckinController::class, 'checkIn'])->name('checkin.checkin');
     Route::get('checkin/{eventId}/stats', [CheckinController::class, 'stats'])->name('checkin.stats');
 
-    // Registrations Management
     Route::delete('registrations/bulk-delete', [RegistrationController::class, 'bulkDelete'])->name('registrations.bulk-delete');
     Route::resource('registrations', RegistrationController::class);
     Route::patch('registrations/{id}/confirm', [RegistrationController::class, 'confirm'])->name('registrations.confirm');
     Route::patch('registrations/{id}/cancel', [RegistrationController::class, 'cancel'])->name('registrations.cancel');
-    
-    // WhatsApp Management
+
     Route::get('whatsapp', [App\Http\Controllers\Admin\WhatsAppController::class, 'index'])->name('whatsapp.index');
     Route::get('whatsapp/event/{event}/messages', [App\Http\Controllers\Admin\WhatsAppController::class, 'eventMessages'])->name('whatsapp.event.messages');
     Route::post('whatsapp/registration/{registration}/confirm', [App\Http\Controllers\Admin\WhatsAppController::class, 'sendConfirmation'])->name('whatsapp.confirm');

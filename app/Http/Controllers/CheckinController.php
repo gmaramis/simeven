@@ -31,7 +31,7 @@ class CheckinController extends Controller
         
         // Get confirmed registrations
         $registrations = Registration::where('event_id', $eventId)
-            ->where('status', 'confirmed')
+            ->confirmedForAttendance()
             ->orderBy('created_at', 'asc')
             ->get();
 
@@ -57,7 +57,7 @@ class CheckinController extends Controller
         
         $registration = Registration::where('event_id', $eventId)
             ->where('phone', $request->phone)
-            ->where('status', 'confirmed')
+            ->confirmedForAttendance()
             ->first();
 
         if (!$registration) {
@@ -73,7 +73,6 @@ class CheckinController extends Controller
                 'id' => $registration->id,
                 'name' => $registration->name,
                 'phone' => $registration->phone,
-                'email' => $registration->email,
                 'church' => $registration->church,
                 'ministry' => $registration->ministry,
                 'checked_in_at' => $registration->checked_in_at,
@@ -94,7 +93,7 @@ class CheckinController extends Controller
 
         $registration = Registration::where('event_id', $eventId)
             ->where('id', $request->registration_id)
-            ->where('status', 'confirmed')
+            ->confirmedForAttendance()
             ->first();
 
         if (!$registration) {
@@ -116,7 +115,7 @@ class CheckinController extends Controller
 
         // Get updated stats
         $registrations = Registration::where('event_id', $eventId)
-            ->where('status', 'confirmed')
+            ->confirmedForAttendance()
             ->get();
 
         $stats = [
@@ -143,7 +142,7 @@ class CheckinController extends Controller
     public function stats($eventId)
     {
         $registrations = Registration::where('event_id', $eventId)
-            ->where('status', 'confirmed')
+            ->confirmedForAttendance()
             ->get();
 
         $stats = [

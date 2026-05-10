@@ -56,11 +56,22 @@
                         Kontak
                     </a>
                     @auth
-                        <a href="{{ route('admin.dashboard') }}" 
-                           class="bg-gradient-to-r from-cyan-500 to-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:from-cyan-600 hover:to-blue-700 transition-all duration-300">
-                            Admin
-                        </a>
+                        @if(auth()->user()->isStaffOrAdmin())
+                            <a href="{{ route('admin.dashboard') }}"
+                               class="bg-gradient-to-r from-cyan-500 to-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:from-cyan-600 hover:to-blue-700 transition-all duration-300">
+                                Admin
+                            </a>
+                        @else
+                            <a href="{{ route('member.dashboard') }}"
+                               class="bg-gradient-to-r from-cyan-500 to-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:from-cyan-600 hover:to-blue-700 transition-all duration-300">
+                                Akun saya
+                            </a>
+                        @endif
                     @else
+                        <a href="{{ route('register') }}"
+                           class="text-gray-700 hover:text-cyan-600 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-300">
+                            Daftar akun
+                        </a>
                         <a href="{{ route('login') }}" 
                            class="bg-gradient-to-r from-cyan-500 to-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:from-cyan-600 hover:to-blue-700 transition-all duration-300">
                             Login

@@ -63,7 +63,7 @@ class AdminController extends Controller
     {
         $event = Event::findOrFail($eventId);
         $participants = Registration::where('event_id', $eventId)
-            ->where('status', 'confirmed')
+            ->confirmedForAttendance()
             ->orderBy('created_at', 'asc')
             ->get();
 
@@ -77,7 +77,7 @@ class AdminController extends Controller
     {
         $event = Event::findOrFail($eventId);
         $participants = Registration::where('event_id', $eventId)
-            ->where('status', 'confirmed')
+            ->confirmedForAttendance()
             ->orderBy('created_at', 'asc')
             ->get();
 

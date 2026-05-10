@@ -17,10 +17,17 @@ class User extends Authenticatable
      *
      * @var list<string>
      */
+    public const ROLE_ADMIN = 'admin';
+
+    public const ROLE_STAFF = 'staff';
+
+    public const ROLE_MEMBER = 'member';
+
     protected $fillable = [
         'name',
         'email',
         'password',
+        'role',
     ];
 
     /**
@@ -44,5 +51,25 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public function isAdmin(): bool
+    {
+        return $this->role === self::ROLE_ADMIN;
+    }
+
+    public function isStaff(): bool
+    {
+        return $this->role === self::ROLE_STAFF;
+    }
+
+    public function isStaffOrAdmin(): bool
+    {
+        return $this->isAdmin() || $this->isStaff();
+    }
+
+    public function registrations()
+    {
+        return $this->hasMany(Registration::class);
     }
 }

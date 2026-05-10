@@ -57,7 +57,7 @@ class SendWhatsAppReminders extends Command
             
             // Get confirmed registrations for this event
             $registrations = Registration::where('event_id', $event->id)
-                ->where('status', 'confirmed')
+                ->confirmedForAttendance()
                 ->get();
 
             $this->info("👥 Found {$registrations->count()} confirmed participants");
@@ -124,27 +124,24 @@ class SendWhatsAppReminders extends Command
     private function getEventsForReminders(string $type): \Illuminate\Database\Eloquent\Collection
     {
         $now = now();
-        
+
         $query = Event::where('status', 'published')
             ->where('start_date', '>', $now);
 
         if ($type === 'h1') {
-            // Events happening tomorrow (H-1)
-            $tomorrow = $now->addDay()->startOfDay();
+            $tomorrow = $now->copy()->addDay()->startOfDay();
             $query->whereBetween('start_date', [
                 $tomorrow,
-                $tomorrow->copy()->endOfDay()
+                $tomorrow->copy()->endOfDay(),
             ]);
         } elseif ($type === 'h0') {
-            // Events happening today (H-0)
-            $today = $now->startOfDay();
+            $today = $now->copy()->startOfDay();
             $query->whereBetween('start_date', [
                 $today,
-                $today->copy()->endOfDay()
+                $today->copy()->endOfDay(),
             ]);
         } else {
-            // All upcoming events (for testing)
-            $query->where('start_date', '<=', $now->addDays(7));
+            $query->where('start_date', '<=', $now->copy()->addDays(7));
         }
 
         return $query->get();
@@ -156,8 +153,8 @@ class SendWhatsAppReminders extends Command
     private function getReminderType(Event $event, string $type): ?string
     {
         $now = now();
-        $eventDate = $event->start_date->startOfDay();
-        $daysUntilEvent = $now->startOfDay()->diffInDays($eventDate, false);
+        $eventDate = $event->start_date->copy()->startOfDay();
+        $daysUntilEvent = $now->copy()->startOfDay()->diffInDays($eventDate, false);
 
         if ($type === 'h1' && $daysUntilEvent === 1) {
             return 'reminder_h1';

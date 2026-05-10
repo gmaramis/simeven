@@ -129,6 +129,34 @@
                     @enderror
                 </div>
 
+                <!-- Harga -->
+                <div>
+                    <label for="pricing_type" class="block text-sm font-bold text-gray-700 mb-2">
+                        Jenis tiket <span class="text-red-500">*</span>
+                    </label>
+                    <select name="pricing_type" id="pricing_type" required
+                            class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all duration-300">
+                        <option value="free" {{ old('pricing_type', 'free') === 'free' ? 'selected' : '' }}>Gratis</option>
+                        <option value="paid" {{ old('pricing_type') === 'paid' ? 'selected' : '' }}>Berbayar</option>
+                    </select>
+                    @error('pricing_type')
+                        <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+                <div id="price-field">
+                    <label for="price" class="block text-sm font-bold text-gray-700 mb-2">
+                        Harga (IDR) <span class="text-red-500" id="price-required">*</span>
+                    </label>
+                    <input type="text" name="price" id="price" inputmode="numeric" autocomplete="off"
+                           value="{{ old('price') }}"
+                           class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all duration-300"
+                           placeholder="10000 atau 10.000">
+                    <p class="text-xs text-gray-500 mt-1">Isi tanpa &ldquo;Rp&rdquo;. Boleh pakai titik ribuan Indonesia (contoh <strong>10.000</strong> = sepuluh ribu).</p>
+                    @error('price')
+                        <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+
                 <!-- Status -->
                 <div>
                     <label for="status" class="block text-sm font-bold text-gray-700 mb-2">
@@ -245,6 +273,19 @@
 </div>
 
 <script>
+(function () {
+    const pricing = document.getElementById('pricing_type');
+    const price = document.getElementById('price');
+    const priceReq = document.getElementById('price-required');
+    function syncPrice() {
+        const paid = pricing.value === 'paid';
+        price.disabled = !paid;
+        priceReq.style.display = paid ? 'inline' : 'none';
+        if (!paid) { price.value = ''; }
+    }
+    pricing.addEventListener('change', syncPrice);
+    syncPrice();
+})();
 // Auto-fill end date when start date changes
 document.getElementById('start_date').addEventListener('change', function() {
     const startDate = this.value;

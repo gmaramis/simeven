@@ -121,6 +121,7 @@
                                 <option value="Worship Leader" {{ old('ministry') == 'Worship Leader' ? 'selected' : '' }}>Worship Leader</option>
                                 <option value="Singers" {{ old('ministry') == 'Singers' ? 'selected' : '' }}>Singers</option>
                                 <option value="Tim Musik" {{ old('ministry') == 'Tim Musik' ? 'selected' : '' }}>Tim Musik</option>
+                                <option value="Anggota Jemaat" {{ old('ministry') == 'Anggota Jemaat' ? 'selected' : '' }}>Anggota Jemaat</option>
                             </select>
                             @error('ministry')
                                 <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
@@ -155,7 +156,11 @@
                                             <svg class="w-4 h-4 text-cyan-600 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                                                 <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
                                             </svg>
-                                            Pendaftaran ini bersifat gratis
+                                            @if($event->isPaid())
+                                                Biaya tiket Rp {{ number_format((float) $event->price, 0, ',', '.') }} — selesaikan pembayaran setelah mengirim formulir
+                                            @else
+                                                Pendaftaran ini bersifat gratis
+                                            @endif
                                         </li>
                                         <li class="flex items-start">
                                             <svg class="w-4 h-4 text-cyan-600 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">

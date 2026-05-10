@@ -7,6 +7,10 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Event extends Model
 {
+    public const PRICING_FREE = 'free';
+
+    public const PRICING_PAID = 'paid';
+
     protected $fillable = [
         'title',
         'description',
@@ -16,12 +20,15 @@ class Event extends Model
         'end_date',
         'location',
         'status',
-        'image'
+        'image',
+        'pricing_type',
+        'price',
     ];
 
     protected $casts = [
         'start_date' => 'datetime',
         'end_date' => 'datetime',
+        'price' => 'decimal:2',
     ];
 
     public function registrations(): HasMany
@@ -47,5 +54,15 @@ class Event extends Model
     public function isUpcoming()
     {
         return $this->start_date->isFuture();
+    }
+
+    public function isPaid(): bool
+    {
+        return ($this->pricing_type ?? self::PRICING_FREE) === self::PRICING_PAID;
+    }
+
+    public function isFree(): bool
+    {
+        return ! $this->isPaid();
     }
 }

@@ -5,9 +5,23 @@ namespace App\Http\Controllers;
 use App\Models\Event;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 
 class EventController extends Controller
 {
+    /**
+     * Harga IDR: hanya angka (pemisah ribuan seperti 10.000 / 10,000 dihapus) agar tidak salah parse (float 10.000 → 10).
+     */
+    private function normalizeIdrPriceInput(mixed $value): ?int
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+        $digits = preg_replace('/\D/', '', (string) $value);
+
+        return $digits === '' ? null : (int) $digits;
+    }
+
     /**
      * Display a listing of the resource.
      */
@@ -30,6 +44,12 @@ class EventController extends Controller
      */
     public function store(Request $request)
     {
+        if ($request->input('pricing_type') === Event::PRICING_PAID) {
+            $request->merge([
+                'price' => $this->normalizeIdrPriceInput($request->input('price')),
+            ]);
+        }
+
         $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'required|string',
@@ -38,6 +58,8 @@ class EventController extends Controller
             'end_date' => 'required|date|after:start_date',
             'location' => 'required|string|max:255',
             'status' => 'required|in:draft,published',
+            'pricing_type' => ['required', Rule::in([Event::PRICING_FREE, Event::PRICING_PAID])],
+            'price' => 'required_if:pricing_type,'.Event::PRICING_PAID.'|nullable|integer|min:1',
             'image' => [
                 'nullable',
                 'image',
@@ -47,6 +69,7 @@ class EventController extends Controller
                 'dimensions:min_width=600,min_height=400' // Minimum dimensions
             ]
         ], [
+            'price.integer' => 'Harga harus angka rupiah penuh (contoh: 10000 atau 10.000).',
             'image.max' => 'Ukuran gambar maksimal 2MB.',
             'image.min' => 'Ukuran gambar minimal 50KB.',
             'image.dimensions' => 'Ukuran gambar minimal 600x400 pixel. Direkomendasikan 1200x800 pixel.',
@@ -60,6 +83,12 @@ class EventController extends Controller
 
         $data = $request->all();
         $data['available_seats'] = $request->total_seats;
+        if (($request->input('pricing_type')) === Event::PRICING_FREE) {
+            $data['pricing_type'] = Event::PRICING_FREE;
+            $data['price'] = null;
+        } else {
+            $data['pricing_type'] = Event::PRICING_PAID;
+        }
 
         if ($request->hasFile('image')) {
             $data['image'] = $request->file('image')->store('events', 'public');
@@ -96,6 +125,12 @@ class EventController extends Controller
     {
         $event = Event::findOrFail($id);
 
+        if ($request->input('pricing_type') === Event::PRICING_PAID) {
+            $request->merge([
+                'price' => $this->normalizeIdrPriceInput($request->input('price')),
+            ]);
+        }
+
         $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'required|string',
@@ -104,6 +139,8 @@ class EventController extends Controller
             'end_date' => 'required|date|after:start_date',
             'location' => 'required|string|max:255',
             'status' => 'required|in:draft,published',
+            'pricing_type' => ['required', Rule::in([Event::PRICING_FREE, Event::PRICING_PAID])],
+            'price' => 'required_if:pricing_type,'.Event::PRICING_PAID.'|nullable|integer|min:1',
             'image' => [
                 'nullable',
                 'image',
@@ -113,6 +150,7 @@ class EventController extends Controller
                 'dimensions:min_width=600,min_height=400' // Minimum dimensions
             ]
         ], [
+            'price.integer' => 'Harga harus angka rupiah penuh (contoh: 10000 atau 10.000).',
             'image.max' => 'Ukuran gambar maksimal 2MB.',
             'image.min' => 'Ukuran gambar minimal 50KB.',
             'image.dimensions' => 'Ukuran gambar minimal 600x400 pixel. Direkomendasikan 1200x800 pixel.',
@@ -124,10 +162,16 @@ class EventController extends Controller
         ]);
 
         $data = $request->all();
+        if (($request->input('pricing_type')) === Event::PRICING_FREE) {
+            $data['pricing_type'] = Event::PRICING_FREE;
+            $data['price'] = null;
+        } else {
+            $data['pricing_type'] = Event::PRICING_PAID;
+        }
 
         // Update available seats if total seats changed
         if ($request->total_seats != $event->total_seats) {
-            $registeredCount = $event->registrations()->count();
+            $registeredCount = $event->registrations()->confirmedForAttendance()->count();
             $data['available_seats'] = $request->total_seats - $registeredCount;
         }
 

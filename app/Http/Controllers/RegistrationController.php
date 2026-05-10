@@ -6,6 +6,7 @@ use App\Models\Event;
 use App\Models\Registration;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\URL;
 
 class RegistrationController extends Controller
 {
@@ -62,10 +63,25 @@ class RegistrationController extends Controller
             return back()->withErrors(['phone' => 'Nomor telepon ini sudah terdaftar untuk event ini.']);
         }
 
-        // Create registration
-        $registration = Registration::create($request->all());
+        $paymentStatus = Registration::PAYMENT_NOT_APPLICABLE;
+        if ($event->isPaid()) {
+            $paymentStatus = $request->input('status') === 'confirmed'
+                ? Registration::PAYMENT_PAID
+                : Registration::PAYMENT_PENDING;
+        }
 
-        // Update available seats
+        $registration = Registration::create([
+            'event_id' => $request->event_id,
+            'name' => $request->name,
+            'phone' => $request->phone,
+            'notes' => $request->notes,
+            'status' => $request->status,
+            'church' => $request->input('church'),
+            'ministry' => $request->input('ministry'),
+            'payment_status' => $paymentStatus,
+            'paid_at' => $paymentStatus === Registration::PAYMENT_PAID ? now() : null,
+        ]);
+
         $event->decrement('available_seats');
 
         return redirect()->route('admin.registrations.index')
@@ -155,8 +171,16 @@ class RegistrationController extends Controller
      */
     public function confirm(string $id)
     {
-        $registration = Registration::findOrFail($id);
-        $registration->update(['status' => 'confirmed']);
+        $registration = Registration::with('event')->findOrFail($id);
+        $payload = ['status' => 'confirmed'];
+        if ($registration->event?->isPaid()) {
+            $payload['payment_status'] = Registration::PAYMENT_PAID;
+            $payload['paid_at'] = now();
+        } else {
+            $payload['payment_status'] = Registration::PAYMENT_NOT_APPLICABLE;
+            $payload['paid_at'] = null;
+        }
+        $registration->update($payload);
 
         return redirect()->route('admin.registrations.index')
             ->with('success', 'Pendaftaran berhasil dikonfirmasi!');
@@ -167,12 +191,13 @@ class RegistrationController extends Controller
      */
     public function cancel(string $id)
     {
-        $registration = Registration::findOrFail($id);
+        $registration = Registration::with('event')->findOrFail($id);
+        $wasConfirmed = $registration->status === 'confirmed';
+
         $registration->update(['status' => 'cancelled']);
 
-        // Increment available seats if registration was confirmed
-        if ($registration->status === 'confirmed') {
-            $registration->event->increment('available_seats');
+        if ($wasConfirmed) {
+            $registration->event?->increment('available_seats');
         }
 
         return redirect()->route('admin.registrations.index')
@@ -234,47 +259,62 @@ class RegistrationController extends Controller
             return back()->withErrors(['phone' => 'Nomor HP/WA ini sudah terdaftar untuk event ini.']);
         }
 
-        // Create registration
-        $registration = Registration::create([
-            'event_id' => $eventId,
-            'name' => $request->name,
-            'phone' => $request->phone,
-            'church' => $request->church,
-            'ministry' => $request->ministry,
-            'notes' => $request->notes,
-            'status' => 'confirmed' // Auto confirm for public registrations
-        ]);
+        $userId = auth()->id();
 
-        // Update available seats
-        $event->decrement('available_seats');
+        if ($event->isFree()) {
+            $registration = Registration::create([
+                'event_id' => $eventId,
+                'name' => $request->name,
+                'phone' => $request->phone,
+                'church' => $request->church,
+                'ministry' => $request->ministry,
+                'notes' => $request->notes,
+                'status' => 'confirmed',
+                'payment_status' => Registration::PAYMENT_NOT_APPLICABLE,
+                'user_id' => $userId,
+            ]);
 
-        // Auto send WhatsApp confirmation if enabled
-        if (config('services.fonnte.enabled', false)) {
-            try {
-                $whatsappService = app(\App\Services\WhatsAppService::class);
-                
-                // Create WhatsApp message record
-                $whatsappMessage = \App\Models\WhatsAppMessage::create([
-                    'registration_id' => $registration->id,
-                    'message_type' => 'confirmation',
-                    'phone_number' => $registration->phone,
-                    'message_content' => '', // Will be set by service
-                    'status' => 'pending'
-                ]);
+            $event->decrement('available_seats');
 
-                // Send the message
-                $whatsappService->sendConfirmationMessage($whatsappMessage);
-                
-                Log::info('Auto WhatsApp confirmation sent', [
-                    'registration_id' => $registration->id,
-                    'phone' => $registration->phone
-                ]);
-            } catch (\Exception $e) {
-                Log::error('Failed to send auto WhatsApp confirmation', [
-                    'registration_id' => $registration->id,
-                    'error' => $e->getMessage()
-                ]);
+            if (config('services.fonnte.enabled', false)) {
+                try {
+                    $whatsappService = app(\App\Services\WhatsAppService::class);
+
+                    $whatsappMessage = \App\Models\WhatsAppMessage::create([
+                        'registration_id' => $registration->id,
+                        'message_type' => 'confirmation',
+                        'phone_number' => $registration->phone,
+                        'message_content' => '',
+                        'status' => 'pending',
+                    ]);
+
+                    $whatsappService->sendConfirmationMessage($whatsappMessage);
+
+                    Log::info('Auto WhatsApp confirmation sent', [
+                        'registration_id' => $registration->id,
+                        'phone' => $registration->phone,
+                    ]);
+                } catch (\Exception $e) {
+                    Log::error('Failed to send auto WhatsApp confirmation', [
+                        'registration_id' => $registration->id,
+                        'error' => $e->getMessage(),
+                    ]);
+                }
             }
+        } else {
+            $registration = Registration::create([
+                'event_id' => $eventId,
+                'name' => $request->name,
+                'phone' => $request->phone,
+                'church' => $request->church,
+                'ministry' => $request->ministry,
+                'notes' => $request->notes,
+                'status' => 'confirmed',
+                'payment_status' => Registration::PAYMENT_PENDING,
+                'user_id' => $userId,
+            ]);
+
+            $event->decrement('available_seats');
         }
 
         return redirect()->route('registration.success', $registration->id);
@@ -294,8 +334,17 @@ class RegistrationController extends Controller
             }
             
             $event = $registration->event;
-            
-            return view('public.registration-success', compact('registration', 'event'));
+
+            $checkoutUrl = null;
+            if ($event->isPaid() && $registration->payment_status === Registration::PAYMENT_PENDING) {
+                $checkoutUrl = URL::temporarySignedRoute(
+                    'payments.checkout',
+                    now()->addDays(7),
+                    ['registration' => $registration->id]
+                );
+            }
+
+            return view('public.registration-success', compact('registration', 'event', 'checkoutUrl'));
         } catch (\Exception $e) {
             // Log the error for debugging
             Log::error('Registration success page error: ' . $e->getMessage(), [
