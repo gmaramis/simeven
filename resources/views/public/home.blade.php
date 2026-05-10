@@ -104,20 +104,27 @@
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 @foreach($events as $event)
                     <div class="group bg-white rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-700 transform hover:-translate-y-4 overflow-hidden border border-gray-100 animate-fade-in-up">
-                        @if($event->image)
-                            <div class="relative overflow-hidden h-56">
+                        <div class="relative h-56 overflow-hidden {{ $event->image ? '' : 'bg-gradient-to-br from-cyan-400 via-blue-500 to-purple-600 flex items-center justify-center' }}">
+                            @if($event->image)
                                 <img src="{{ Storage::url($event->image) }}" alt="{{ $event->title }}" class="w-full h-full object-cover group-hover:scale-125 transition-transform duration-700">
-                                <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-                            </div>
-                        @else
-                            <div class="relative h-56 bg-gradient-to-br from-cyan-400 via-blue-500 to-purple-600 flex items-center justify-center overflow-hidden">
+                                <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent pointer-events-none"></div>
+                            @else
                                 <div class="absolute inset-0 bg-black/20"></div>
                                 <div class="absolute inset-0 bg-gradient-to-r from-cyan-400/50 to-purple-600/50 animate-pulse"></div>
                                 <svg class="w-20 h-20 text-white relative z-10 group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                                 </svg>
-                            </div>
-                        @endif
+                            @endif
+                            @if($event->isPaid())
+                                <span class="absolute top-3 right-3 z-20 inline-flex items-center rounded-full bg-amber-500 px-3 py-1 text-xs font-bold text-white shadow-lg ring-2 ring-white/60" title="Event berbayar">
+                                    Berbayar
+                                </span>
+                            @else
+                                <span class="absolute top-3 right-3 z-20 inline-flex items-center rounded-full bg-emerald-500 px-3 py-1 text-xs font-bold text-white shadow-lg ring-2 ring-white/60" title="Event gratis">
+                                    Gratis
+                                </span>
+                            @endif
+                        </div>
                         
                         <div class="p-8">
                             <!-- Event Status Badge -->

@@ -42,10 +42,28 @@
                             <img src="{{ Storage::url($event->image) }}" alt="{{ $event->title }}" 
                                  class="w-full h-full object-cover">
                             <div class="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent"></div>
+                            @if($event->isPaid())
+                                <span class="absolute top-4 right-4 z-20 inline-flex items-center rounded-full bg-amber-500 px-4 py-2 text-sm font-bold text-white shadow-lg ring-2 ring-white/60" title="Event berbayar">
+                                    Berbayar
+                                </span>
+                            @else
+                                <span class="absolute top-4 right-4 z-20 inline-flex items-center rounded-full bg-emerald-500 px-4 py-2 text-sm font-bold text-white shadow-lg ring-2 ring-white/60" title="Event gratis">
+                                    Gratis
+                                </span>
+                            @endif
                         </div>
                     @else
                         <div class="relative h-64 md:h-80 lg:h-96 bg-gradient-to-br from-cyan-400 via-blue-500 to-purple-600 flex items-center justify-center">
                             <div class="absolute inset-0 bg-black/20"></div>
+                            @if($event->isPaid())
+                                <span class="absolute top-4 right-4 z-20 inline-flex items-center rounded-full bg-amber-500 px-4 py-2 text-sm font-bold text-white shadow-lg ring-2 ring-white/60" title="Event berbayar">
+                                    Berbayar
+                                </span>
+                            @else
+                                <span class="absolute top-4 right-4 z-20 inline-flex items-center rounded-full bg-emerald-500 px-4 py-2 text-sm font-bold text-white shadow-lg ring-2 ring-white/60" title="Event gratis">
+                                    Gratis
+                                </span>
+                            @endif
                             <svg class="w-24 h-24 text-white relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                             </svg>
