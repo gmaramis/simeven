@@ -16,17 +16,17 @@
 <script type="text/javascript">
     window.snap.pay({!! json_encode($snapToken) !!}, {
         onSuccess: function () {
-            window.location.href = @json(route('registration.success', $registration->id));
+            window.location.href = @json($successUrl);
         },
         onPending: function () {
-            window.location.href = @json(route('registration.success', $registration->id));
+            window.location.href = @json($successUrl);
         },
         onError: function () {
             alert('Pembayaran gagal atau dibatalkan.');
-            window.location.href = @json(route('registration.success', $registration->id));
+            window.location.href = @json($successUrl);
         },
         onClose: function () {
-            window.location.href = @json(route('registration.success', $registration->id));
+            window.location.href = @json($successUrl);
         }
     });
 </script>

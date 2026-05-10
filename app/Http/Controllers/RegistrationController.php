@@ -317,7 +317,11 @@ class RegistrationController extends Controller
             $event->decrement('available_seats');
         }
 
-        return redirect()->route('registration.success', $registration->id);
+        return redirect()->to(URL::temporarySignedRoute(
+            'registration.success',
+            now()->addDays(7),
+            ['registrationId' => $registration->id]
+        ));
     }
 
     /**

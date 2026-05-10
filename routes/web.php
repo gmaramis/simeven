@@ -19,7 +19,9 @@ Route::get('/contact', [PublicController::class, 'contact'])->name('contact');
 // Public Registration Routes
 Route::get('/events/{eventId}/register', [RegistrationController::class, 'register'])->name('events.register');
 Route::post('/events/{eventId}/register', [RegistrationController::class, 'storePublic'])->name('events.register.store');
-Route::get('/registration/success/{registrationId}', [RegistrationController::class, 'success'])->name('registration.success');
+Route::get('/registration/success/{registrationId}', [RegistrationController::class, 'success'])
+    ->middleware('signed')
+    ->name('registration.success');
 
 Route::post('/payments/midtrans/notification', [PaymentController::class, 'midtransNotification'])->name('payments.midtrans.notification');
 Route::get('/payments/checkout/{registration}', [PaymentController::class, 'checkout'])

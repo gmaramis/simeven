@@ -8,6 +8,7 @@ use App\Services\MidtransPaymentService;
 use App\Services\WhatsAppService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\URL;
 use Illuminate\View\View;
 
 class PaymentController extends Controller
@@ -23,18 +24,25 @@ class PaymentController extends Controller
             abort(404);
         }
 
+        $successUrl = URL::temporarySignedRoute(
+            'registration.success',
+            now()->addDays(7),
+            ['registrationId' => $registration->id]
+        );
+
         if ($registration->payment_status !== Registration::PAYMENT_PENDING) {
-            return view('payments.already', compact('registration'));
+            return view('payments.already', compact('registration', 'successUrl'));
         }
 
         if (! $this->midtrans->isConfigured()) {
-            return view('payments.unconfigured', compact('registration'));
+            return view('payments.unconfigured', compact('registration', 'successUrl'));
         }
 
         $result = $this->midtrans->createSnapToken($registration);
         if (! $result['success']) {
             return view('payments.error', [
                 'registration' => $registration,
+                'successUrl' => $successUrl,
                 'message' => $result['error'] ?? 'Tidak dapat memulai pembayaran',
             ]);
         }
@@ -44,6 +52,7 @@ class PaymentController extends Controller
 
         return view('payments.checkout', [
             'registration' => $registration,
+            'successUrl' => $successUrl,
             'snapToken' => $result['token'],
             'clientKey' => $clientKey,
             'snapJsUrl' => $snapJsUrl,
