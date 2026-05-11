@@ -130,11 +130,11 @@
         window.snap.pay('{{ $registration->snap_token }}', {
             onSuccess: function(result){
                 /* You may add your own implementation here */
-                window.location.href = "{{ $successUrl }}";
+                window.location.href = {!! json_encode($successUrl) !!};
             },
             onPending: function(result){
                 /* You may add your own implementation here */
-                window.location.href = "{{ $pendingUrl }}";
+                window.location.href = {!! json_encode($pendingUrl) !!};
             },
             onError: function(result){
                 /* You may add your own implementation here */

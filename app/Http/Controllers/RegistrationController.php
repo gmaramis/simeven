@@ -376,6 +376,14 @@ class RegistrationController extends Controller
         try {
             $registration = Registration::with('event')->findOrFail($registrationId);
             
+            if ($registration->payment_status === Registration::PAYMENT_PAID) {
+                return redirect()->to(URL::temporarySignedRoute(
+                    'registration.success',
+                    now()->addDays(7),
+                    ['registrationId' => $registration->id]
+                ));
+            }
+
             if (!$registration->event) {
                 abort(404, 'Event tidak ditemukan');
             }
@@ -383,10 +391,29 @@ class RegistrationController extends Controller
             $event = $registration->event;
 
             $midtrans = app(\App\Services\MidtransPaymentService::class);
+            $paymentInfo = null;
+
             if ($midtrans->isConfigured() && $registration->payment_status === Registration::PAYMENT_PENDING) {
-                $result = $midtrans->createSnapToken($registration);
-                if ($result['success']) {
-                    $registration->snap_token = $result['token'];
+                if ($registration->midtrans_order_id) {
+                    $statusResult = $midtrans->checkStatus($registration->midtrans_order_id);
+                    if ($statusResult['success']) {
+                        $paymentInfo = $statusResult['data'];
+                        $status = $paymentInfo['transaction_status'] ?? '';
+
+                        // Jika saat di-reload status ternyata sudah dibayar di Midtrans
+                        if (in_array($status, ['capture', 'settlement'])) {
+                            $registration->update([
+                                'payment_status' => Registration::PAYMENT_PAID,
+                                'paid_at' => now(),
+                            ]);
+
+                            return redirect()->to(URL::temporarySignedRoute(
+                                'registration.success',
+                                now()->addDays(7),
+                                ['registrationId' => $registration->id]
+                            ));
+                        }
+                    }
                 }
             }
 
@@ -396,7 +423,7 @@ class RegistrationController extends Controller
                 ['registrationId' => $registration->id]
             );
 
-            return view('public.registration-pending', compact('registration', 'event', 'successUrl'));
+            return view('public.registration-pending', compact('registration', 'event', 'successUrl', 'paymentInfo'));
         } catch (\Exception $e) {
             Log::error('Registration pending page error: ' . $e->getMessage(), [
                 'registration_id' => $registrationId,
@@ -404,6 +431,70 @@ class RegistrationController extends Controller
             ]);
             
             abort(404, 'Pendaftaran tidak ditemukan');
+        }
+    }
+
+    public function checkStatusApi($registrationId)
+    {
+        try {
+            $registration = Registration::findOrFail($registrationId);
+            
+            if ($registration->payment_status === Registration::PAYMENT_PAID) {
+                return response()->json(['success' => true, 'status' => 'paid']);
+            }
+
+            if (!$registration->midtrans_order_id) {
+                return response()->json(['success' => false, 'error' => 'Order ID tidak ditemukan']);
+            }
+
+            $midtrans = app(\App\Services\MidtransPaymentService::class);
+            $statusResult = $midtrans->checkStatus($registration->midtrans_order_id);
+
+            if ($statusResult['success']) {
+                $status = $statusResult['data']['transaction_status'] ?? '';
+                if (in_array($status, ['capture', 'settlement'])) {
+                    $registration->update([
+                        'payment_status' => Registration::PAYMENT_PAID,
+                        'paid_at' => now(),
+                    ]);
+                    return response()->json(['success' => true, 'status' => 'paid']);
+                }
+                return response()->json(['success' => true, 'status' => $status]);
+            }
+
+            return response()->json(['success' => false, 'error' => 'Gagal mengecek status']);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'error' => $e->getMessage()]);
+        }
+    }
+
+    public function changePayment($registrationId)
+    {
+        try {
+            $registration = Registration::findOrFail($registrationId);
+
+            if ($registration->payment_status === Registration::PAYMENT_PAID) {
+                return redirect()->route('registration.success', $registration->id);
+            }
+
+            if ($registration->midtrans_order_id) {
+                $midtrans = app(\App\Services\MidtransPaymentService::class);
+                $midtrans->cancelTransaction($registration->midtrans_order_id);
+            }
+
+            // Clear midtrans order ID so a new one is generated
+            $registration->update([
+                'midtrans_order_id' => null
+            ]);
+
+            return redirect()->to(URL::temporarySignedRoute(
+                'payments.checkout',
+                now()->addDays(7),
+                ['registration' => $registration->id]
+            ));
+        } catch (\Exception $e) {
+            Log::error('Ganti pembayaran error: ' . $e->getMessage());
+            abort(500, 'Terjadi kesalahan saat mengganti metode pembayaran');
         }
     }
 
