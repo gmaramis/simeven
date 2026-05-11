@@ -47,15 +47,20 @@ class PaymentController extends Controller
             ]);
         }
 
-        $clientKey = config('services.midtrans.client_key');
-        $snapJsUrl = $this->midtrans->snapBaseUrl().'/snap/snap.js';
+        $registration->snap_token = $result['token'];
+        $event = $registration->event;
 
-        return view('payments.checkout', [
+        $pendingUrl = URL::temporarySignedRoute(
+            'registration.pending',
+            now()->addDays(7),
+            ['registrationId' => $registration->id]
+        );
+
+        return view('public.registration-checkout', [
             'registration' => $registration,
+            'event' => $event,
             'successUrl' => $successUrl,
-            'snapToken' => $result['token'],
-            'clientKey' => $clientKey,
-            'snapJsUrl' => $snapJsUrl,
+            'pendingUrl' => $pendingUrl,
         ]);
     }
 

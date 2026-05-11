@@ -317,11 +317,19 @@ class RegistrationController extends Controller
             $event->decrement('available_seats');
         }
 
-        return redirect()->to(URL::temporarySignedRoute(
-            'registration.success',
-            now()->addDays(7),
-            ['registrationId' => $registration->id]
-        ));
+        if ($event->isFree()) {
+            return redirect()->to(URL::temporarySignedRoute(
+                'registration.success',
+                now()->addDays(7),
+                ['registrationId' => $registration->id]
+            ));
+        } else {
+            return redirect()->to(URL::temporarySignedRoute(
+                'payments.checkout',
+                now()->addDays(7),
+                ['registration' => $registration->id]
+            ));
+        }
     }
 
     /**
@@ -352,6 +360,45 @@ class RegistrationController extends Controller
         } catch (\Exception $e) {
             // Log the error for debugging
             Log::error('Registration success page error: ' . $e->getMessage(), [
+                'registration_id' => $registrationId,
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            abort(404, 'Pendaftaran tidak ditemukan');
+        }
+    }
+
+    /**
+     * Show registration pending page
+     */
+    public function pending($registrationId)
+    {
+        try {
+            $registration = Registration::with('event')->findOrFail($registrationId);
+            
+            if (!$registration->event) {
+                abort(404, 'Event tidak ditemukan');
+            }
+            
+            $event = $registration->event;
+
+            $midtrans = app(\App\Services\MidtransPaymentService::class);
+            if ($midtrans->isConfigured() && $registration->payment_status === Registration::PAYMENT_PENDING) {
+                $result = $midtrans->createSnapToken($registration);
+                if ($result['success']) {
+                    $registration->snap_token = $result['token'];
+                }
+            }
+
+            $successUrl = URL::temporarySignedRoute(
+                'registration.success',
+                now()->addDays(7),
+                ['registrationId' => $registration->id]
+            );
+
+            return view('public.registration-pending', compact('registration', 'event', 'successUrl'));
+        } catch (\Exception $e) {
+            Log::error('Registration pending page error: ' . $e->getMessage(), [
                 'registration_id' => $registrationId,
                 'trace' => $e->getTraceAsString()
             ]);
