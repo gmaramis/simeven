@@ -22,6 +22,54 @@ class MidtransPaymentService
             : 'https://app.sandbox.midtrans.com';
     }
 
+    public function apiBaseUrl(): string
+    {
+        return config('services.midtrans.production', false)
+            ? 'https://api.midtrans.com'
+            : 'https://api.sandbox.midtrans.com';
+    }
+
+    public function checkStatus(string $orderId): array
+    {
+        if (! $this->isConfigured()) {
+            return ['success' => false, 'error' => 'Midtrans belum dikonfigurasi'];
+        }
+
+        $url = $this->apiBaseUrl().'/v2/'.$orderId.'/status';
+        $serverKey = config('services.midtrans.server_key');
+
+        $response = Http::withBasicAuth($serverKey, '')
+            ->acceptJson()
+            ->get($url);
+
+        if (! $response->successful()) {
+            return ['success' => false, 'error' => 'Gagal mengecek status'];
+        }
+
+        return ['success' => true, 'data' => $response->json()];
+    }
+
+    public function cancelTransaction(string $orderId): array
+    {
+        if (! $this->isConfigured()) {
+            return ['success' => false, 'error' => 'Midtrans belum dikonfigurasi'];
+        }
+
+        $url = $this->apiBaseUrl().'/v2/'.$orderId.'/cancel';
+        $serverKey = config('services.midtrans.server_key');
+
+        $response = Http::withBasicAuth($serverKey, '')
+            ->acceptJson()
+            ->post($url);
+
+        // Jika status kode 412 (sudah expired atau tidak bisa di cancel), kita anggap success false tapi tetap bisa generate token baru nantinya.
+        if (! $response->successful() && $response->status() !== 412 && $response->status() !== 404) {
+            return ['success' => false, 'error' => 'Gagal membatalkan transaksi'];
+        }
+
+        return ['success' => true, 'data' => $response->json()];
+    }
+
     /**
      * @return array{success: bool, token?: string, error?: string}
      */

@@ -22,6 +22,15 @@ Route::post('/events/{eventId}/register', [RegistrationController::class, 'store
 Route::get('/registration/success/{registrationId}', [RegistrationController::class, 'success'])
     ->middleware('signed')
     ->name('registration.success');
+Route::get('/registration/pending/{registrationId}', [RegistrationController::class, 'pending'])
+    ->middleware('signed')
+    ->name('registration.pending');
+Route::get('/registration/check-status-api/{registrationId}', [RegistrationController::class, 'checkStatusApi'])
+    ->middleware('signed')
+    ->name('registration.check-status-api');
+Route::post('/registration/change-payment/{registrationId}', [RegistrationController::class, 'changePayment'])
+    ->middleware('signed')
+    ->name('registration.change-payment');
 
 Route::post('/payments/midtrans/notification', [PaymentController::class, 'midtransNotification'])->name('payments.midtrans.notification');
 Route::get('/payments/checkout/{registration}', [PaymentController::class, 'checkout'])
